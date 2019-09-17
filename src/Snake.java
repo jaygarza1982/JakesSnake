@@ -1,19 +1,26 @@
-import java.util.concurrent.CopyOnWriteArrayList;
-import javax.swing.JOptionPane;
+import java.awt.Color;
+import java.awt.Point;
+import java.io.Serializable;
+import java.util.ArrayList;
 
-//Purpose of class: to hold snake variables and do snake functions
-
-public class Snake {
+public class Snake implements Comparable<Snake>, Serializable {
+	private static final long serialVersionUID = -7436136006855017951L;
+	
 	public static final String DOWN = "down";
 	public static final String UP = "up";
 	public static final String RIGHT = "right";
 	public static final String LEFT = "left";
+	public static int winWidth, winHeight;
     
     private String snakeDirection = DOWN;
+    private Color color = new Color(0, 255, 0);
+    private int timeToLive = 10;
     
     //These arrays are parallel
-    private CopyOnWriteArrayList<Integer> snakeX = new CopyOnWriteArrayList<Integer>();
-    private CopyOnWriteArrayList<Integer> snakeY = new CopyOnWriteArrayList<Integer>();
+    private ArrayList<Integer> snakeX = new ArrayList<Integer>();
+    private ArrayList<Integer> snakeY = new ArrayList<Integer>();
+    
+    private String name = "NAME";
     
     //When snake is created, add one cell to body at x, y
     public Snake(int x, int y) {
@@ -21,21 +28,25 @@ public class Snake {
     	snakeY.add(y);
     }
     
-    public CopyOnWriteArrayList<Integer> getSnakeXs() {
+    public ArrayList<Integer> getSnakeXs() {
     	return snakeX;
     }
     
-    public CopyOnWriteArrayList<Integer> getSnakeYs() {
+    public ArrayList<Integer> getSnakeYs() {
     	return snakeY;
     }
     
     //Should get passed a static direction variable
     public void setDirection(String direction) {
-    	//Snake cannot run into itself by going the opposite direction it is currently in
-    	if (!(direction.equals(DOWN) && snakeDirection.equals(UP)) && !(direction.equals(UP) && snakeDirection.equals(DOWN))
-    			&& !(direction.equals(LEFT) && snakeDirection.equals(RIGHT)) && !(direction.equals(RIGHT) && snakeDirection.equals(LEFT))) {
-    		snakeDirection = direction;
-    	}
+		//Snake cannot run into itself by going the opposite direction it is currently in
+		if (getLength() != 1) {
+			if (!(!(direction.equals(DOWN) && snakeDirection.equals(UP)) && !(direction.equals(UP) && snakeDirection.equals(DOWN))
+					&& !(direction.equals(LEFT) && snakeDirection.equals(RIGHT)) && !(direction.equals(RIGHT) && snakeDirection.equals(LEFT)))) {
+				return;
+			}
+		}
+
+		snakeDirection = direction;
     }
     
     public String getDirection() { return snakeDirection; }
@@ -69,49 +80,29 @@ public class Snake {
     	snakeY.remove(snakeY.size()-1);
 
     	//If a snake cell goes off screen, put it on the other side
-    	putSnakeInBounds();
-    	
-    	//TODO: put this into the Main class and implement multiplayer stuff
-    	
-    	//Check to see if the snake ran into itself
-    	if (!Main.multiPlayer) {
-    		int headX = snakeX.get(0);
-        	int headY = snakeY.get(0);
-        	
-        	//Check if the snakes head is inside any of the other cells, the loop starts at 1 because 0 is the head
-        	for (int i = 1; i < snakeX.size(); i++) {
-        		int currentX = snakeX.get(i);
-        		int currentY = snakeY.get(i);
-        		
-        		if (headX == currentX && headY == currentY) {
-        			JOptionPane.showMessageDialog(null, "You lose!\nYou scored " + (snakeX.size()-1) + " points.");
-        			System.exit(0);
-        		}
-        	}
-    	}
-    	
+    	putSnakeInBounds(winWidth, winHeight);
     }
     
     //This will put the snake back in map if it goes off screen, it will spawn at other side
-    private void putSnakeInBounds() {
+    private void putSnakeInBounds(int width, int height) {
     	for (int i = 0; i < snakeX.size(); i++) {
     		//Put x in bounds of game
     		int x = snakeX.get(i);
     		
-    		if (x >= Main.WINDOW_WIDTH)
-    			x %= Main.WINDOW_WIDTH;
+    		if (x >= width)
+    			x %= width;
         	else if (x < 0)
-        		x = Main.WINDOW_WIDTH;
+        		x = width;
     		
     		snakeX.set(i, x);
     		
     		int y = snakeY.get(i);
     		
     		//Put y in bounds of game
-    		if (y >= Main.WINDOW_HEIGHT)
-        		y %= Main.WINDOW_HEIGHT;
+    		if (y >= height)
+        		y %= height;
         	else if (y < 0)
-        		y = Main.WINDOW_HEIGHT;
+        		y = height;
     		
     		snakeY.set(i, y);
     	}
@@ -123,15 +114,53 @@ public class Snake {
     	int backY = snakeY.get(snakeY.size()-1);
     	
     	for (int i = 0; i < amount; i++) {
+    		//Add cells off screen
     		snakeX.add(backX);
         	snakeY.add(backY);
     	}
     }
     
-    public void removeCell(int amount) {
-    	if (snakeX.size() - amount >= 1) {
-    		snakeX.subList(snakeX.size() - amount, snakeX.size()).clear();
-    		snakeY.subList(snakeY.size() - amount, snakeY.size()).clear();
-    	}
+    public void removeCells(int n) {
+    	if (getLength() - n > 0) {
+    		snakeX = new ArrayList<Integer>(snakeX.subList(0, snakeX.size() - n));
+        	snakeY = new ArrayList<Integer>(snakeY.subList(0, snakeY.size() - n)); 
+    	}	
+    }
+    
+    public void setName(String s) {
+    	name = s;
+    }
+    
+    public String getName() {
+    	return name;
+    }
+
+    public Point getHead() {
+    	return new Point(snakeX.get(0), snakeY.get(0));
+	}
+
+    public int getLength() {
+    	return snakeX.size();
+	}
+    
+    public int getTimeToLive() {
+    	return timeToLive;
+    }
+    
+    public void setTimeToLive(int n) {
+    	timeToLive = n;
+    }
+    
+    public void setColor(Color color) {
+    	this.color = color;
+    }
+    
+    public Color getColor() {
+    	return color;
+    }
+    
+    @Override
+    public int compareTo(Snake otherSnake) {
+    	return otherSnake.getLength() - getLength();
     }
 }

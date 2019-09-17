@@ -1,34 +1,30 @@
-//Purpose of class is to hold x and y cords
+import java.awt.Point;
+import java.io.Serializable;
 
-public class Apple {
-	private int x = 0, y = 0;
+public class Apple implements Serializable {
+	private static final long serialVersionUID = -7335256724830797233L;
 	
-	public Apple() {}
-	
-	public Apple(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-	
-	public int getX() {
-		return x;
-	}
-	
-	public int getY() {
-		return y;
-	}
-	
-	private int genRand(int min, int max) {
-		int rang = (max - min) + 1;
-		return (int)(Math.random() * rang) + min;
-	}
-	
-	public void randomizeCords() {
-		//Generate random x and y, get nearest multiple of CELLSIZE
-		x = genRand(0, Main.WINDOW_WIDTH - Main.CELLSIZE);
-		x = (int)Math.ceil(x / Main.CELLSIZE) * Main.CELLSIZE;
+	int x, y;
 
-		y = genRand(0, Main.WINDOW_HEIGHT - Main.CELLSIZE);
-		y = (int)Math.ceil(y / Main.CELLSIZE) * Main.CELLSIZE;
-	}
+    public Apple() {
+        x = 0;
+        y = 0;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public Point getPos() {
+        return new Point(x, y);
+    }
+
+    public void setPos(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }
